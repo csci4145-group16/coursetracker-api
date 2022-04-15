@@ -1,5 +1,5 @@
 import AWS from 'aws-sdk'
-import crypto from 'crypto'
+// import crypto from 'crypto'
 
 class Cognito {
   config = {
@@ -23,7 +23,7 @@ class Cognito {
       return await this.cognito.signUp(params).promise()
     } catch (error) {
       console.error(error)
-      const { code } = error
+      const { code, statusCode } = error
       const message = this.getMessageFromErrorCode(code)
       throw { message, statusCode }
     }
@@ -71,6 +71,7 @@ class Cognito {
     }
   }
 
+  // USE THIS IF COGNITO HAS SECRET KEY
   // generateSecretHash(email) {
   //   return crypto
   //     .createHmac('SHA256', this.clientSecret)

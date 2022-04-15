@@ -3,6 +3,7 @@ import Course from '../models/Course.js'
 import verifyToken from '../middlewares/verifyToken.js'
 import User from '../models/User.js'
 import School from '../models/School.js'
+import Task from '../models/Task.js'
 
 const router = express.Router()
 
@@ -17,7 +18,7 @@ router.get('/', async (_req, res) => {
 })
 
 // get all courses that start with a letter
-router.get('/:letter', async (req, res) => {
+router.get('/search/:letter', async (req, res) => {
   const { letter } = req.params
   if (!letter)
     return res
@@ -76,6 +77,7 @@ router.post('/', verifyToken, async (req, res) => {
   }
 })
 
+// Join a course
 router.post('/:courseId/join', verifyToken, async (req, res) => {
   const { id } = req.user
   const { courseId } = req.params
@@ -95,6 +97,27 @@ router.post('/:courseId/join', verifyToken, async (req, res) => {
     )
 
     res.json(courseId)
+  } catch (err) {
+    console.error(err)
+    res.status(err.statusCode || 500).json({ message: err.message || err })
+  }
+})
+
+// Get a course
+router.get('/:courseId', verifyToken, async (req, res) => {
+  const { id } = req.user
+  const { courseId } = req.params
+  try {
+    const user = await User.get(id)
+    if (!user.courseIds.includes(courseId))
+      return res.status(400).json({ message: 'User not part of this course.' })
+
+    const course = await Course.get(courseId)
+    if (!course) return res.status(404).json({ message: 'Course not found.' })
+
+    const tasks = await Task.scan().where('courseId').eq(courseId).exec()
+
+    res.json({ course, tasks })
   } catch (err) {
     console.error(err)
     res.status(err.statusCode || 500).json({ message: err.message || err })
