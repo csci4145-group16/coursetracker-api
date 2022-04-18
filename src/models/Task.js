@@ -15,7 +15,10 @@ export const taskSchema = new dynamoose.Schema(
       required: true,
     },
     courseId: {
-      sortKey: true,
+      type: String,
+      required: true,
+    },
+    userId: {
       type: String,
       required: true,
     },

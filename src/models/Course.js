@@ -28,7 +28,7 @@ export const courseSchema = new dynamoose.Schema(
       type: String,
       required: true,
     },
-    colour: {
+    color: {
       type: String,
       required: true,
     },

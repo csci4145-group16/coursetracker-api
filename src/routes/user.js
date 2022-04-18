@@ -4,6 +4,7 @@ import verifyToken from '../middlewares/verifyToken.js'
 import Course from '../models/Course.js'
 import User from '../models/User.js'
 import { identityServiceProvider } from '../middlewares/verifyToken.js'
+import Task from '../models/Task.js'
 
 const router = express.Router()
 
@@ -27,7 +28,14 @@ router.get('/courses', verifyToken, async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' })
     if (user.courseIds.length === 0) return res.json([])
     const courses = await Course.batchGet(user.courseIds)
-    res.json(courses)
+    const tasks = await Task.scan()
+      .where('courseId')
+      .in(user.courseIds)
+      .and()
+      .where('userId')
+      .eq(id)
+      .exec()
+    res.json({ courses, tasks })
   } catch (err) {
     console.error(err)
     res.status(err.statusCode || 500).json({ message: err.message || err })
