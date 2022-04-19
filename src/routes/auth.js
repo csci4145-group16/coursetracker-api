@@ -6,14 +6,19 @@ const router = express.Router()
 
 // sign up a user
 router.post('/signup', async (req, res) => {
+  console.log('HELLOOOOOO')
   const { email, password } = req.body
   if (!email || !password)
     return res.status(400).json({ message: 'Email and Password are required' })
   try {
     const cognito = new Cognito()
     const { UserSub: id } = await cognito.signUp(email, password)
+    console.log('attempting to create user...')
     const newUser = new User({ id })
+    console.log('created user model')
+    console.log('attempting to save user...')
     await newUser.save()
+    console.log('saved user model')
     res.status(200).end()
   } catch (err) {
     console.error(err)

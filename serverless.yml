@@ -1,0 +1,32 @@
+app: coursetracker-api
+service: coursetracker-api
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: us-east-1
+
+  httpApi:
+    cors: true
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:BatchGetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:CreateTable
+          Resource: '*'
+
+functions:
+  api:
+    handler: app.handler
+    events:
+      - httpApi: '*'

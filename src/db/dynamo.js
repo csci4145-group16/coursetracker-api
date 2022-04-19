@@ -5,7 +5,7 @@ dynamoose.aws.sdk.config.update({
 })
 
 // connect to aws account if in production
-if (process.env.NODE_ENV === 'production') {
+if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
   console.log('Configuring dynamoose for production')
   dynamoose.aws.sdk.config.update({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,

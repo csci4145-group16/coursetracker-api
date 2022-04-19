@@ -20,4 +20,7 @@ const schoolSchema = new dynamoose.Schema(
   }
 )
 
-export default dynamoose.model('School', schoolSchema)
+export default dynamoose.model('School', schoolSchema, {
+  create: false,
+  waitForActive: false,
+})
