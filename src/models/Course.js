@@ -22,13 +22,13 @@ export const courseSchema = new dynamoose.Schema(
       hashKey: true,
       type: String,
       required: true,
-      default: uuid(),
+      default: () => uuid(),
     },
     name: {
       type: String,
       required: true,
     },
-    colour: {
+    color: {
       type: String,
       required: true,
     },

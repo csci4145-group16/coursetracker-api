@@ -1,4 +1,5 @@
 import * as dynamoose from 'dynamoose'
+import { v4 as uuid } from 'uuid'
 
 export const userSchema = new dynamoose.Schema(
   {
@@ -6,6 +7,7 @@ export const userSchema = new dynamoose.Schema(
       type: String,
       hashKey: true,
       required: true,
+      default: () => uuid(),
     },
     school: String,
     courseIds: {

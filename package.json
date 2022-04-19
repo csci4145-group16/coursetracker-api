@@ -12,8 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.1093.0",
+    "aws-serverless-express": "^3.4.0",
     "cors": "^2.8.5",
-    "crypto": "^1.0.1",
     "dotenv": "^16.0.0",
     "dynamoose": "^2.8.5",
     "express": "^4.17.3",

@@ -3,8 +3,31 @@ import Course from '../models/Course.js'
 import verifyToken from '../middlewares/verifyToken.js'
 import User from '../models/User.js'
 import School from '../models/School.js'
+import Task from '../models/Task.js'
+import tasksRoute from './tasks.js'
 
 const router = express.Router()
+
+router.use('/:courseId/:segment/tasks', verifyToken, async (req, res, next) => {
+  const { courseId, segment } = req.params
+  if (!courseId)
+    return res.status(400).json({ message: 'No course id provided.' })
+  if (!segment) return res.status(400).json({ message: 'No segment provided.' })
+  try {
+    const { id: userId } = req.user
+    const user = await User.get(userId)
+    if (!user) return res.status(400).json({ message: 'No user found.' })
+    if (!user.courseIds.includes(courseId))
+      return res.status(400).json({ message: 'User not part of this course.' })
+    req.courseId = courseId
+    req.segment = segment
+    next()
+  } catch (err) {
+    console.log(err)
+    res.status(err.statusCode || 500).json({ message: err.message || err })
+  }
+})
+router.use('/:courseId/:segment/tasks', tasksRoute)
 
 // get all courses
 router.get('/', async (_req, res) => {
@@ -17,7 +40,7 @@ router.get('/', async (_req, res) => {
 })
 
 // get all courses that start with a letter
-router.get('/:letter', async (req, res) => {
+router.get('/search/:letter', async (req, res) => {
   const { letter } = req.params
   if (!letter)
     return res
@@ -76,6 +99,7 @@ router.post('/', verifyToken, async (req, res) => {
   }
 })
 
+// Join a course
 router.post('/:courseId/join', verifyToken, async (req, res) => {
   const { id } = req.user
   const { courseId } = req.params
@@ -95,6 +119,33 @@ router.post('/:courseId/join', verifyToken, async (req, res) => {
     )
 
     res.json(courseId)
+  } catch (err) {
+    console.error(err)
+    res.status(err.statusCode || 500).json({ message: err.message || err })
+  }
+})
+
+// Get a course
+router.get('/:courseId', verifyToken, async (req, res) => {
+  const { id } = req.user
+  const { courseId } = req.params
+  try {
+    const user = await User.get(id)
+    if (!user.courseIds.includes(courseId))
+      return res.status(400).json({ message: 'User not part of this course.' })
+
+    const course = await Course.get(courseId)
+    if (!course) return res.status(404).json({ message: 'Course not found.' })
+
+    const tasks = await Task.scan()
+      .where('courseId')
+      .eq(courseId)
+      .and()
+      .where('userId')
+      .eq(id)
+      .exec()
+
+    res.json({ course, tasks })
   } catch (err) {
     console.error(err)
     res.status(err.statusCode || 500).json({ message: err.message || err })

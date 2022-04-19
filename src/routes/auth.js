@@ -29,7 +29,6 @@ router.post('/signin', async (req, res) => {
   try {
     const cognito = new Cognito()
     const { AuthenticationResult } = await cognito.signIn(email, password)
-    console.log(AuthenticationResult)
     const { AccessToken, RefreshToken } = AuthenticationResult
     res.json({ AccessToken, RefreshToken })
   } catch (err) {
