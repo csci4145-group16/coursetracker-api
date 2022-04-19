@@ -7,7 +7,7 @@ export const taskSchema = new dynamoose.Schema(
       hashKey: true,
       type: String,
       required: true,
-      default: uuid(),
+      default: () => uuid(),
     },
     title: String,
     grade: {

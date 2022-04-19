@@ -10,9 +10,8 @@ router.post('/', async (req, res) => {
   const { id: userId } = req.user
 
   const { title, grade } = req.body
-  if (!grade) return res.status(400).json({ message: 'No grade provided.' })
-
-  console.log('hello')
+  if (grade == null)
+    return res.status(400).json({ message: 'No grade provided.' })
 
   try {
     const course = await Course.get(courseId)
@@ -22,14 +21,15 @@ router.post('/', async (req, res) => {
         .status(400)
         .json({ message: 'Segment does not exist on course.' })
 
-    const task = await Task.create({
+    const task = new Task({
       title,
       grade,
       courseId,
       userId,
       segment,
     })
-    res.json(task.id)
+    const newTask = await task.save()
+    res.json(newTask.id)
   } catch (err) {
     res.status(err.statusCode || 500).json({ message: err.message || err })
   }
