@@ -1,6 +1,7 @@
+import serverless from 'serverless-http'
 import express from 'express'
 import cors from 'cors'
-import * as awsServerlessExpressMiddleware from 'aws-serverless-express/middleware.js'
+// import * as awsServerlessExpressMiddleware from 'aws-serverless-express/middleware.js'
 import 'dotenv/config'
 
 import './src/db/dynamo.js'
@@ -15,10 +16,11 @@ const app = express()
 const { PORT = 4000 } = process.env
 
 // middlewares
-app.use(express.json())
 app.use(cors())
-if (process.env.NODE_ENV === 'production')
-  app.use(awsServerlessExpressMiddleware.eventContext())
+app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
+// if (process.env.NODE_ENV === 'production')
+//   app.use(awsServerlessExpressMiddleware.eventContext())
 
 app.get('/api', (_req, res) => {
   res.send('<h1>Welcome to the CourseTracker API!</h1>')
@@ -34,7 +36,4 @@ app.listen(PORT, () => {
   console.log(`App runnning on http://localhost:${PORT}/api`)
 })
 
-// Export the app object. When executing the application local this does nothing. However,
-// to port it to AWS Lambda we will create a wrapper around that will load the app from
-// this file
-export default app
+export const handler = serverless(app)

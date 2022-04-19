@@ -23,4 +23,7 @@ export const userSchema = new dynamoose.Schema(
   }
 )
 
-export default dynamoose.model('User', userSchema)
+export default dynamoose.model('User', userSchema, {
+  create: false,
+  waitForActive: false,
+})

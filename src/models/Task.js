@@ -34,4 +34,7 @@ export const taskSchema = new dynamoose.Schema(
   }
 )
 
-export default dynamoose.model('Task', taskSchema)
+export default dynamoose.model('Task', taskSchema, {
+  create: false,
+  waitForActive: false,
+})

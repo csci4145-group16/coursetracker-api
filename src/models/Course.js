@@ -56,4 +56,7 @@ export const courseSchema = new dynamoose.Schema(
   }
 )
 
-export default dynamoose.model('Course', courseSchema)
+export default dynamoose.model('Course', courseSchema, {
+  create: false,
+  waitForActive: false,
+})
