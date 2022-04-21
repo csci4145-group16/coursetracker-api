@@ -42,6 +42,33 @@ router.get('/courses', verifyToken, async (req, res) => {
   }
 })
 
+// Get a course
+router.get('/courses/:courseId', verifyToken, async (req, res) => {
+  const { id } = req.user
+  const { courseId } = req.params
+  try {
+    const user = await User.get(id)
+    if (!user.courseIds.includes(courseId))
+      return res.status(400).json({ message: 'User not part of this course.' })
+
+    const course = await Course.get(courseId)
+    if (!course) return res.status(404).json({ message: 'Course not found.' })
+
+    const tasks = await Task.scan()
+      .where('courseId')
+      .eq(courseId)
+      .and()
+      .where('userId')
+      .eq(id)
+      .exec()
+
+    res.json({ course, tasks })
+  } catch (err) {
+    console.error(err)
+    res.status(err.statusCode || 500).json({ message: err.message || err })
+  }
+})
+
 router.post('/refresh', async (req, res) => {
   const { refreshToken } = req.body
   try {

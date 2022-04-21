@@ -3,8 +3,8 @@ import Course from '../models/Course.js'
 import verifyToken from '../middlewares/verifyToken.js'
 import User from '../models/User.js'
 import School from '../models/School.js'
-import Task from '../models/Task.js'
 import tasksRoute from './tasks.js'
+import paginatedSearchResults from '../middlewares/paginatedSearchResults.js'
 
 const router = express.Router()
 
@@ -39,30 +39,9 @@ router.get('/', async (_req, res) => {
   }
 })
 
-// get all courses that start with a letter
-router.get('/search/:letter', async (req, res) => {
-  const { letter } = req.params
-  if (!letter)
-    return res
-      .status(400)
-      .json({ message: 'No first letter provided to search for.' })
-  else if (letter.length > 1)
-    return res
-      .status(400)
-      .json({ message: 'Search letter cannot be longer that one letter.' })
-
-  try {
-    const courses = await Course.scan('name')
-      .beginsWith(letter.toUpperCase())
-      .or()
-      .where('name')
-      .beginsWith(letter.toLowerCase())
-      .exec()
-
-    res.json(courses)
-  } catch (err) {
-    res.status(err.statusCode || 500).json({ message: err.message || err })
-  }
+// search courses with pagination
+router.get('/search/:val', paginatedSearchResults(Course), async (req, res) => {
+  res.json(res.paginatedResults)
 })
 
 // create a course
@@ -70,12 +49,14 @@ router.post('/', verifyToken, async (req, res) => {
   const { id } = req.user
   const { course } = req.body
   try {
-    const newCourse = new Course(course)
+    const newCourse = new Course({
+      ...course,
+      searchName: course.name.toLowerCase(),
+      userIds: [id],
+    })
     const savedCourse = await newCourse.save()
 
-    console.log(savedCourse.id)
-
-    const u = await User.update(
+    await User.update(
       { id },
       {
         $ADD: { courseIds: savedCourse.id },
@@ -117,6 +98,12 @@ router.post('/:courseId/join', verifyToken, async (req, res) => {
         $ADD: { courseIds: courseId },
       }
     )
+    await Course.update(
+      { id: courseId },
+      {
+        $ADD: { userIds: id },
+      }
+    )
 
     res.json(courseId)
   } catch (err) {
@@ -126,26 +113,13 @@ router.post('/:courseId/join', verifyToken, async (req, res) => {
 })
 
 // Get a course
-router.get('/:courseId', verifyToken, async (req, res) => {
-  const { id } = req.user
+router.get('/:courseId', async (req, res) => {
   const { courseId } = req.params
   try {
-    const user = await User.get(id)
-    if (!user.courseIds.includes(courseId))
-      return res.status(400).json({ message: 'User not part of this course.' })
-
     const course = await Course.get(courseId)
     if (!course) return res.status(404).json({ message: 'Course not found.' })
 
-    const tasks = await Task.scan()
-      .where('courseId')
-      .eq(courseId)
-      .and()
-      .where('userId')
-      .eq(id)
-      .exec()
-
-    res.json({ course, tasks })
+    res.json(course)
   } catch (err) {
     console.error(err)
     res.status(err.statusCode || 500).json({ message: err.message || err })

@@ -28,6 +28,10 @@ export const courseSchema = new dynamoose.Schema(
       type: String,
       required: true,
     },
+    searchName: {
+      type: String,
+      required: true,
+    },
     color: {
       type: String,
       required: true,
@@ -46,7 +50,8 @@ export const courseSchema = new dynamoose.Schema(
     school: String,
     userIds: {
       type: Array,
-      schema: String,
+      schema: [String],
+      default: [],
     },
   },
   {
@@ -56,7 +61,12 @@ export const courseSchema = new dynamoose.Schema(
   }
 )
 
-export default dynamoose.model('Course', courseSchema, {
-  create: false,
-  waitForActive: false,
-})
+const params =
+  process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
+    ? {
+        create: false,
+        waitForActive: false,
+      }
+    : {}
+
+export default dynamoose.model('Course', courseSchema, params)
