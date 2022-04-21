@@ -221,7 +221,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/coursetracker-api/dev/1650556408486-2022-04-21T15:53:28.486Z/coursetracker-api.zip"
+          "S3Key": "serverless/coursetracker-api/dev/1650558012012-2022-04-21T16:20:12.012Z/coursetracker-api.zip"
         },
         "Handler": "s_api.handler",
         "Runtime": "nodejs14.x",
@@ -239,14 +239,14 @@
         "ApiLogGroup"
       ]
     },
-    "ApiLambdaVersionNGiiUawZrkykFzBC6Nd1FKJgzpr0bvWuKo0DdQqM": {
+    "ApiLambdaVersioncFONd9APQjbKXDRiv82rEFxpbc594gndIoP5dKS4w4g": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ApiLambdaFunction"
         },
-        "CodeSha256": "/KDJFedmljZTKA6WbJO0zlMf1z8rwHt7eKTHP4TUjLU="
+        "CodeSha256": "/JCjs+7hBDj5Q6mVl2PAlckuWRKSd4iOhdt5bIPQ2z8="
       }
     },
     "HttpApi": {
@@ -426,7 +426,7 @@
     "ApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiLambdaVersionNGiiUawZrkykFzBC6Nd1FKJgzpr0bvWuKo0DdQqM"
+        "Ref": "ApiLambdaVersioncFONd9APQjbKXDRiv82rEFxpbc594gndIoP5dKS4w4g"
       },
       "Export": {
         "Name": "sls-coursetracker-api-dev-ApiLambdaFunctionQualifiedArn"
