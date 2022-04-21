@@ -168,6 +168,52 @@
         }
       }
     },
+    "EnterpriseLogAccessIamRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "arn:aws:iam::802587217904:root"
+              },
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "sts:ExternalId": "ServerlessEnterprise-fd57896b-3ab7-4e76-afe4-2d6ea5a3eb21"
+                }
+              }
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "LogFilterAccess",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:FilterLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::GetAtt": [
+                        "ApiLogGroup",
+                        "Arn"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
     "ApiLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
@@ -175,9 +221,9 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/coursetracker-api/dev/1650396424403-2022-04-19T19:27:04.403Z/coursetracker-api.zip"
+          "S3Key": "serverless/coursetracker-api/dev/1650556408486-2022-04-21T15:53:28.486Z/coursetracker-api.zip"
         },
-        "Handler": "app.handler",
+        "Handler": "s_api.handler",
         "Runtime": "nodejs14.x",
         "FunctionName": "coursetracker-api-dev-api",
         "MemorySize": 1024,
@@ -193,14 +239,14 @@
         "ApiLogGroup"
       ]
     },
-    "ApiLambdaVersionGEgPlGjOwKfqiFSwreRXqBnU4P4mon8IZjm30PxMxo": {
+    "ApiLambdaVersionNGiiUawZrkykFzBC6Nd1FKJgzpr0bvWuKo0DdQqM": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ApiLambdaFunction"
         },
-        "CodeSha256": "w+Px613rvC/Dat2SZCMy2zmwzLp+1oWeeYka4cTMf2I="
+        "CodeSha256": "/KDJFedmljZTKA6WbJO0zlMf1z8rwHt7eKTHP4TUjLU="
       }
     },
     "HttpApi": {
@@ -232,6 +278,12 @@
         }
       }
     },
+    "HttpApiLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/http-api/coursetracker-api-dev"
+      }
+    },
     "HttpApiStage": {
       "Type": "AWS::ApiGatewayV2::Stage",
       "Properties": {
@@ -242,8 +294,18 @@
         "AutoDeploy": true,
         "DefaultRouteSettings": {
           "DetailedMetricsEnabled": false
+        },
+        "AccessLogSettings": {
+          "DestinationArn": {
+            "Fn::GetAtt": [
+              "HttpApiLogGroup",
+              "Arn"
+            ]
+          },
+          "Format": "{\"requestTime\":\"$context.requestTime\",\"requestId\":\"$context.requestId\",\"apiId\":\"$context.apiId\",\"resourcePath\":\"$context.routeKey\",\"path\":\"$context.path\",\"httpMethod\":\"$context.httpMethod\",\"stage\":\"$context.stage\",\"status\":\"$context.status\",\"integrationStatus\":\"$context.integrationStatus\",\"integrationLatency\":\"$context.integrationLatency\",\"responseLatency\":\"$context.responseLatency\",\"responseLength\":\"$context.responseLength\",\"errorMessage\":\"$context.error.message\",\"format\":\"SLS_HTTP_API_LOG\",\"version\":\"1.0.0\"}"
         }
-      }
+      },
+      "DependsOn": "HttpApiLogGroup"
     },
     "ApiLambdaPermissionHttpApi": {
       "Type": "AWS::Lambda::Permission",
@@ -319,6 +381,26 @@
         }
       },
       "DependsOn": "HttpApiIntegrationApi"
+    },
+    "CWLSubFilterApiLogGroupUsEast1": {
+      "Type": "AWS::Logs::SubscriptionFilter",
+      "Properties": {
+        "DestinationArn": "arn:aws:logs:us-east-1:802587217904:destination:fd57896b-3ab7-4e76-afe4-2d6ea5a3eb21#DnqX0TKmFJPp5V1JsT#coursetracker-api#dev",
+        "FilterPattern": "?\"REPORT RequestId: \" ?\"SERVERLESS_ENTERPRISE\"",
+        "LogGroupName": {
+          "Ref": "ApiLogGroup"
+        }
+      }
+    },
+    "CWLSubFilterHttpApiLogGroupUsEast1": {
+      "Type": "AWS::Logs::SubscriptionFilter",
+      "Properties": {
+        "DestinationArn": "arn:aws:logs:us-east-1:802587217904:destination:fd57896b-3ab7-4e76-afe4-2d6ea5a3eb21#DnqX0TKmFJPp5V1JsT#coursetracker-api#dev",
+        "FilterPattern": "\"SLS_HTTP_API_LOG\"",
+        "LogGroupName": {
+          "Ref": "HttpApiLogGroup"
+        }
+      }
     }
   },
   "Outputs": {
@@ -330,10 +412,21 @@
         "Name": "sls-coursetracker-api-dev-ServerlessDeploymentBucketName"
       }
     },
+    "EnterpriseLogAccessIamRole": {
+      "Value": {
+        "Fn::GetAtt": [
+          "EnterpriseLogAccessIamRole",
+          "Arn"
+        ]
+      },
+      "Export": {
+        "Name": "sls-coursetracker-api-dev-EnterpriseLogAccessIamRole"
+      }
+    },
     "ApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiLambdaVersionGEgPlGjOwKfqiFSwreRXqBnU4P4mon8IZjm30PxMxo"
+        "Ref": "ApiLambdaVersionNGiiUawZrkykFzBC6Nd1FKJgzpr0bvWuKo0DdQqM"
       },
       "Export": {
         "Name": "sls-coursetracker-api-dev-ApiLambdaFunctionQualifiedArn"

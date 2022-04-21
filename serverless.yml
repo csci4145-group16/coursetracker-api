@@ -1,3 +1,4 @@
+org: idunnett
 app: coursetracker-api
 service: coursetracker-api
 frameworkVersion: '3'
@@ -27,6 +28,6 @@ provider:
 
 functions:
   api:
-    handler: app.handler
+    handler: dist/app.handler
     events:
       - httpApi: '*'
