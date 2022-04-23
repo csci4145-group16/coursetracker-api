@@ -16,50 +16,53 @@ const segmentSchema = new dynamoose.Schema({
   },
 })
 
-export const courseSchema = new dynamoose.Schema(
-  {
-    id: {
-      hashKey: true,
-      type: String,
-      required: true,
-      default: () => uuid(),
-    },
-    name: {
-      type: String,
-      required: true,
-    },
-    searchName: {
-      type: String,
-      required: true,
-    },
-    color: {
-      type: String,
-      required: true,
-    },
-    segments: {
-      type: Array,
-      schema: [segmentSchema],
-      required: true,
-    },
-    year: Number,
-    term: {
-      type: String,
-      enum: ['Fall', 'Winter', 'Summer'],
-    },
-    instructor: String,
-    school: String,
-    userIds: {
-      type: Array,
-      schema: [String],
-      default: [],
+export const courseSchema = new dynamoose.Schema({
+  id: {
+    hashKey: true,
+    type: String,
+    required: true,
+    default: () => uuid(),
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  searchName: {
+    type: String,
+    required: true,
+  },
+  color: {
+    type: String,
+    required: true,
+  },
+  segments: {
+    type: Array,
+    schema: [segmentSchema],
+    required: true,
+  },
+  year: {
+    type: Number,
+    index: {
+      global: true,
+      name: 'yearGlobalIndex',
+      rangeKey: 'name',
     },
   },
-  {
-    timestamps: {
-      createdAt: 'createdAt',
+  term: {
+    type: String,
+    enum: ['Fall', 'Winter', 'Summer'],
+  },
+  instructor: String,
+  school: {
+    type: String,
+    index: {
+      global: true,
+      name: 'schoolGlobalIndex',
+      rangeKey: 'year',
     },
-  }
-)
+  },
+  memberCount: Number,
+})
 
 const params =
   process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY

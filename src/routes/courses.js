@@ -4,7 +4,7 @@ import verifyToken from '../middlewares/verifyToken.js'
 import User from '../models/User.js'
 import School from '../models/School.js'
 import tasksRoute from './tasks.js'
-import paginatedSearchResults from '../middlewares/paginatedSearchResults.js'
+import paginatedSearchResults from '../utils/paginatedSearchResults.js'
 
 const router = express.Router()
 
@@ -39,9 +39,52 @@ router.get('/', async (_req, res) => {
   }
 })
 
+router.get('/search', verifyToken, async (req, res) => {
+  const { id } = req.user
+  const startAt = req.query.startAt
+  const limit = parseInt(req.query.limit)
+  let results
+  try {
+    const { school } = await User.get(id)
+    if (school)
+      results = await Course.query('school')
+        .eq(school)
+        .sort('descending')
+        .limit(limit)
+        .startAt(startAt)
+        .exec()
+    else {
+      const currentYear = new Date().getFullYear()
+      results = await Course.query('year')
+        .eq(currentYear)
+        .limit(limit)
+        .startAt(startAt)
+        .exec()
+    }
+    res.json({ results })
+  } catch (err) {
+    console.error(err)
+    res.status(err.statusCode || 500).json({ message: err.message || err })
+  }
+})
+
 // search courses with pagination
-router.get('/search/:val', paginatedSearchResults(Course), async (req, res) => {
-  res.json(res.paginatedResults)
+router.get('/search/:val', async (req, res) => {
+  const { val } = req.params
+  const startAt = req.query.startAt
+  const limit = parseInt(req.query.limit)
+  try {
+    const paginatedResults = await paginatedSearchResults(
+      Course,
+      'searchName',
+      val,
+      startAt,
+      limit
+    )
+    res.json(paginatedResults)
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ message: err.message || err })
+  }
 })
 
 // create a course
@@ -52,7 +95,7 @@ router.post('/', verifyToken, async (req, res) => {
     const newCourse = new Course({
       ...course,
       searchName: course.name.toLowerCase(),
-      userIds: [id],
+      memberCount: 1,
     })
     const savedCourse = await newCourse.save()
 
@@ -101,7 +144,7 @@ router.post('/:courseId/join', verifyToken, async (req, res) => {
     await Course.update(
       { id: courseId },
       {
-        $ADD: { userIds: id },
+        $ADD: { memberCount: 1 },
       }
     )
 

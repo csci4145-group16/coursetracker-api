@@ -1,6 +1,6 @@
 org: idunnett
-app: coursetracker-api
-service: coursetracker-api
+app: coursetracker
+service: coursetracker
 frameworkVersion: '3'
 
 provider:
