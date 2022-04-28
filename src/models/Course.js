@@ -2,6 +2,11 @@ import * as dynamoose from 'dynamoose'
 import { v4 as uuid } from 'uuid'
 
 const segmentSchema = new dynamoose.Schema({
+  id: {
+    type: String,
+    required: true,
+    default: () => uuid(),
+  },
   name: {
     type: String,
     required: true,
@@ -40,14 +45,7 @@ export const courseSchema = new dynamoose.Schema({
     schema: [segmentSchema],
     required: true,
   },
-  year: {
-    type: Number,
-    index: {
-      global: true,
-      name: 'yearGlobalIndex',
-      rangeKey: 'name',
-    },
-  },
+  year: Number,
   term: {
     type: String,
     enum: ['Fall', 'Winter', 'Summer'],

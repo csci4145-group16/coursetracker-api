@@ -1,5 +1,5 @@
 export default async (model, searchField, searchValue, startAt = 0, limit) => {
-  const scanIncrement = 2
+  const scanIncrement = 100
   const results = {
     results: [],
   }

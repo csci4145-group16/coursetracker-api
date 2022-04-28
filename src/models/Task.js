@@ -22,7 +22,7 @@ export const taskSchema = new dynamoose.Schema(
       type: String,
       required: true,
     },
-    segment: {
+    segmentId: {
       type: String,
       required: true,
     },
