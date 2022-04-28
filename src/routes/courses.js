@@ -1,33 +1,20 @@
 import express from 'express'
 import Course from '../models/Course.js'
 import verifyToken from '../middlewares/verifyToken.js'
+import tasksMiddleware from '../middlewares/tasksMiddleware.js'
 import User from '../models/User.js'
 import School from '../models/School.js'
 import tasksRoute from './tasks.js'
-import paginatedSearchResults from '../middlewares/paginatedSearchResults.js'
+import paginatedSearchResults from '../utils/paginatedSearchResults.js'
 
 const router = express.Router()
 
-router.use('/:courseId/:segment/tasks', verifyToken, async (req, res, next) => {
-  const { courseId, segment } = req.params
-  if (!courseId)
-    return res.status(400).json({ message: 'No course id provided.' })
-  if (!segment) return res.status(400).json({ message: 'No segment provided.' })
-  try {
-    const { id: userId } = req.user
-    const user = await User.get(userId)
-    if (!user) return res.status(400).json({ message: 'No user found.' })
-    if (!user.courseIds.includes(courseId))
-      return res.status(400).json({ message: 'User not part of this course.' })
-    req.courseId = courseId
-    req.segment = segment
-    next()
-  } catch (err) {
-    console.log(err)
-    res.status(err.statusCode || 500).json({ message: err.message || err })
-  }
-})
-router.use('/:courseId/:segment/tasks', tasksRoute)
+router.use(
+  '/:courseId/segments/:segmentId/tasks',
+  verifyToken,
+  tasksMiddleware,
+  tasksRoute
+)
 
 // get all courses
 router.get('/', async (_req, res) => {
@@ -39,9 +26,47 @@ router.get('/', async (_req, res) => {
   }
 })
 
+router.get('/search', verifyToken, async (req, res) => {
+  const { id } = req.user
+  const startAt = req.query.startAt || 0
+  const limit = parseInt(req.query.limit)
+  let results
+  try {
+    const { school } = await User.get(id)
+    if (school) {
+      results = await Course.query('school')
+        .eq(school)
+        .sort('descending')
+        .limit(limit)
+        .startAt(startAt)
+        .exec()
+    } else {
+      results = await Course.scan().limit(limit).startAt(startAt).exec()
+    }
+    res.json({ results })
+  } catch (err) {
+    console.error(err)
+    res.status(err.statusCode || 500).json({ message: err.message || err })
+  }
+})
+
 // search courses with pagination
-router.get('/search/:val', paginatedSearchResults(Course), async (req, res) => {
-  res.json(res.paginatedResults)
+router.get('/search/:val', async (req, res) => {
+  const { val } = req.params
+  const startAt = req.query.startAt
+  const limit = parseInt(req.query.limit)
+  try {
+    const paginatedResults = await paginatedSearchResults(
+      Course,
+      'searchName',
+      val,
+      startAt,
+      limit
+    )
+    res.json(paginatedResults)
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ message: err.message || err })
+  }
 })
 
 // create a course
@@ -52,7 +77,7 @@ router.post('/', verifyToken, async (req, res) => {
     const newCourse = new Course({
       ...course,
       searchName: course.name.toLowerCase(),
-      userIds: [id],
+      memberCount: 1,
     })
     const savedCourse = await newCourse.save()
 
@@ -101,7 +126,7 @@ router.post('/:courseId/join', verifyToken, async (req, res) => {
     await Course.update(
       { id: courseId },
       {
-        $ADD: { userIds: id },
+        $ADD: { memberCount: 1 },
       }
     )
 

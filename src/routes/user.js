@@ -42,7 +42,7 @@ router.get('/courses', verifyToken, async (req, res) => {
   }
 })
 
-// Get a course
+// Get a user's course
 router.get('/courses/:courseId', verifyToken, async (req, res) => {
   const { id } = req.user
   const { courseId } = req.params

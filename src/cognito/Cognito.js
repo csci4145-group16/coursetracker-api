@@ -63,7 +63,6 @@ class Cognito {
     try {
       return await this.cognito.initiateAuth(params).promise()
     } catch (error) {
-      console.log('HELLO ERROR')
       console.error(error)
       const { code, statusCode } = error
       let message = this.getMessageFromErrorCode(code)

@@ -1,6 +1,13 @@
 import express from 'express'
 import Cognito from '../cognito/Cognito.js'
 import User from '../models/User.js'
+import AWS from 'aws-sdk'
+
+const { CognitoIdentityServiceProvider } = AWS
+
+export const identityServiceProvider = new CognitoIdentityServiceProvider({
+  region: 'us-east-1',
+})
 
 const router = express.Router()
 
@@ -30,6 +37,16 @@ router.post('/signin', async (req, res) => {
     const cognito = new Cognito()
     const { AuthenticationResult } = await cognito.signIn(email, password)
     const { AccessToken, RefreshToken } = AuthenticationResult
+    const rawUser = await identityServiceProvider
+      .getUser({ AccessToken })
+      .promise()
+    const id = rawUser.UserAttributes.find((attr) => attr.Name === 'sub')?.Value
+    const userExists = await User.get(id)
+    if (!userExists) {
+      const newUser = new User({ id })
+      await newUser.save()
+    }
+
     res.json({ AccessToken, RefreshToken })
   } catch (err) {
     console.error(err)

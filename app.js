@@ -1,7 +1,6 @@
 import serverless from 'serverless-http'
 import express from 'express'
 import cors from 'cors'
-// import * as awsServerlessExpressMiddleware from 'aws-serverless-express/middleware.js'
 import 'dotenv/config'
 
 import './src/db/dynamo.js'
@@ -17,10 +16,8 @@ const { PORT = 4000 } = process.env
 
 // middlewares
 app.use(cors())
-app.use(express.urlencoded({ extended: true }))
+app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
-// if (process.env.NODE_ENV === 'production')
-//   app.use(awsServerlessExpressMiddleware.eventContext())
 
 app.get('/api', (_req, res) => {
   res.send('<h1>Welcome to the CourseTracker API!</h1>')

@@ -4,9 +4,11 @@ import Course from '../models/Course.js'
 
 const router = express.Router()
 
+// Add a task
 router.post('/', async (req, res) => {
   const courseId = req.courseId
-  const segment = req.segment
+  const segmentId = req.segmentId
+  console.log(segmentId)
   const { id: userId } = req.user
 
   const { title, grade } = req.body
@@ -15,7 +17,7 @@ router.post('/', async (req, res) => {
 
   try {
     const course = await Course.get(courseId)
-    const segmentExists = course.segments.find((s) => s.name === segment)
+    const segmentExists = course.segments.find((s) => s.id === segmentId)
     if (!segmentExists)
       return res
         .status(400)
@@ -26,7 +28,7 @@ router.post('/', async (req, res) => {
       grade,
       courseId,
       userId,
-      segment,
+      segmentId,
     })
     const newTask = await task.save()
     res.json(newTask.id)
@@ -38,14 +40,14 @@ router.post('/', async (req, res) => {
 router.put('/:taskId', async (req, res) => {
   const { taskId } = req.params
   const courseId = req.courseId
-  const segment = req.segment
+  const segmentId = req.segmentId
 
   const { title, grade } = req.body
   if (!grade) return res.status(400).json({ message: 'No grade provided.' })
 
   try {
     const course = await Course.get(courseId)
-    const segmentExists = course.segments.find((s) => s.name === segment)
+    const segmentExists = course.segments.find((s) => s.id === segmentId)
     if (!segmentExists)
       return res
         .status(400)
@@ -56,7 +58,7 @@ router.put('/:taskId', async (req, res) => {
     task.grade = grade
     task.title = title
     await task.save()
-    res.json(task.id)
+    res.status(200).end()
   } catch (err) {
     res.status(err.statusCode || 500).json({ message: err.message || err })
   }
