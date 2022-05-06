@@ -73,11 +73,20 @@ router.get('/search/:val', async (req, res) => {
 router.post('/', verifyToken, async (req, res) => {
   const { id } = req.user
   const { course } = req.body
+  console.log(course)
+  if (!course.name || !course.color || !course.segments)
+    return res.status(400).json({ message: 'Missing required fields' })
+
+  let totalSegmentsGrade = 0
+  course.segments.forEach((segment) => (totalSegmentsGrade += segment.value))
+  if (totalSegmentsGrade !== 100)
+    return res.status(400).json({ message: 'Total segments grade must be 100' })
+
   try {
     const newCourse = new Course({
-      ...course,
       searchName: course.name.toLowerCase(),
       memberCount: 1,
+      ...course,
     })
     const savedCourse = await newCourse.save()
 
